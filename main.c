@@ -8,8 +8,11 @@ typedef struct item
 {
     char *word;
     int weight;
+    size_t idx;
 } Item;
 
+int cnt = 0;
+int cnt2 = 0;
 typedef struct Node
 {
     char letter;
@@ -26,7 +29,7 @@ typedef struct Vector
     size_t capacity;
 } Vector;
 
-int getlinenum(char *line, FILE *fp)
+int getlinenum(FILE *fp)
 {
     int i = 0;
     char c;
@@ -156,17 +159,25 @@ Node *get_suggestions(Node *node, Vector *vector)
     }
 }
 
-void free_tree(Node *node) {
-    if (node == NULL) {
+void free_tree(Node *node, Item **items)
+{
+    cnt2++;
+    if (node == NULL)
+    {
         return;
     }
-    if (node->childCount > 0) {
-        for (int k = 0; k < node->childCount; k++) {
+    if (node->childCount > 0)
+    {
+        for (int k = 0; k < node->childCount; k++)
+        {
             Node *child = node->childs[k];
-            free_tree(child);
+            free_tree(child, items);
         }
     }
-    if (node->item != NULL) {
+    if (node->item != NULL)
+    {
+        cnt++;
+        items[node->item->idx] = NULL;
         free(node->item->word);
         free(node->item);
     }
@@ -196,7 +207,7 @@ int main(int argc, char **argv)
     }
 
     // First, let's count number of lines. This will help us know how much memory to allocate
-    while ((lineSize = getlinenum(&line, fp)) != -1)
+    while ((lineSize = getlinenum(fp)) != -1)
     {
         wordCount++;
     }
@@ -222,6 +233,7 @@ int main(int argc, char **argv)
         strcpy(wordCopy, word);
         item->word = wordCopy;
         item->weight = weight;
+        item->idx = i;
         items[i] = item;
         /////////////////PAY ATTENTION HERE/////////////////
         // This might be a good place to store the dictionary words into your data structure
@@ -230,9 +242,9 @@ int main(int argc, char **argv)
     // // close the input file
     fclose(fp);
 
-    // ////////////////////////////////////////////////////////////////////////
-    // ///////////////////////// read query list file /////////////////////////
-    // ////////////////////////////////////////////////////////////////////////
+    // // ////////////////////////////////////////////////////////////////////////
+    // // ///////////////////////// read query list file /////////////////////////
+    // // ////////////////////////////////////////////////////////////////////////
     fp = fopen(queryFilePath, "r");
 
     // check if the file is accessible, just to make sure...
@@ -243,30 +255,20 @@ int main(int argc, char **argv)
     }
 
     // // First, let's count number of queries. This will help us know how much memory to allocate
-    while ((lineSize = getlinenum(&line, fp)) != -1)
+    while ((lineSize = getlinenum(fp)) != -1)
     {
         queryCount++;
     }
     free(line); // getlinenum internally allocates memory, so we need to free it here so as not to leak memory!!
-
-    // Printing line count for debugging purposes. You can remove this part from your submission.
-
-    /////////////////PAY ATTENTION HERE/////////////////
-    // This might be a good place to allocate memory for storing query words, by the size of "queryCount"
-    ////////////////////////////////////////////////////
 
     fseek(fp, 0, SEEK_SET); // rewind to the beginning of the file, before reading it line by line.
     char **queries = malloc(sizeof(char *) * queryCount);
     for (int i = 0; i < queryCount; i++)
     {
         fscanf(fp, "%s\n", word);
-        // Let's print them to the screen to make sure we can read input, for debugging purposes. You can remove this part from your submission.
         char *wordCopy = malloc(sizeof(char) * BUFSIZE);
         strcpy(wordCopy, word);
         queries[i] = wordCopy;
-        /////////////////PAY ATTENTION HERE/////////////////
-        // This might be a good place to store the query words in a list like data structure
-        ////////////////////////////////////////////////////
     }
     // close the input file
     fclose(fp);
@@ -294,7 +296,6 @@ int main(int argc, char **argv)
         }
         node->item = items[i];
     }
-
     for (int i = 0; i < queryCount; i++)
     {
         char *query = queries[i];
@@ -328,23 +329,22 @@ int main(int argc, char **argv)
         free(vector->items);
         free(vector);
     }
-    free_tree(root);
+    free_tree(root, items);
+    for (int i = 0; i < queryCount; i++)
+    {
+        free(queries[i]);
+    }
     free(queries);
+    for (int i = 0; i < wordCount; i++)
+    {
+        if (items[i] == NULL)
+        {
+            continue;
+        }
+        free(items[i]->word);
+        free(items[i]);
+    }
     free(items);
-    ////////////////////////////////////////////////////////////////////////
-    ///////////////////////// reading input is done ////////////////////////
-    ////////////////////////////////////////////////////////////////////////
-
-    // Now it is your turn to do the magic!!!
-    // do search/sort/print, whatever you think you need to do to satisfy the requirements of the assignment!
-    // loop through the query words and list suggestions for each query word if there are any
-    // don't forget to free the memory before you quit the program!
-
-    // // OUTPUT SPECS:
-    // //  use the following if no word to suggest: printf("No suggestion!\n");
-    // //  use the following to print a single line of outputs (assuming that the word and weight are stored in variables named word and weight, respectively):
-    // //  printf("%s %d\n",word,weight);
-    // //  if there are more than 10 outputs to print, you should print the top 10 weighted outputs.
 
     return 0;
 }
