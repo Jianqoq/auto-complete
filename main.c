@@ -299,6 +299,7 @@ int main(int argc, char **argv)
     for (int i = 0; i < queryCount; i++)
     {
         char *query = queries[i];
+        printf("Query word:%s\n", query);
         size_t len = strlen(query);
         Node *node = root;
         for (int j = 0; j < len; j++)
@@ -325,7 +326,6 @@ int main(int argc, char **argv)
             Item *item = vector->items[k];
             printf("%s %d\n", item->word, item->weight);
         }
-        printf("\n");
         free(vector->items);
         free(vector);
     }
