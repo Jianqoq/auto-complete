@@ -11,8 +11,6 @@ typedef struct item
     size_t idx;
 } Item;
 
-int cnt = 0;
-int cnt2 = 0;
 typedef struct Node
 {
     char letter;
@@ -161,7 +159,6 @@ Node *get_suggestions(Node *node, Vector *vector)
 
 void free_tree(Node *node, Item **items)
 {
-    cnt2++;
     if (node == NULL)
     {
         return;
@@ -176,7 +173,6 @@ void free_tree(Node *node, Item **items)
     }
     if (node->item != NULL)
     {
-        cnt++;
         items[node->item->idx] = NULL;
         free(node->item->word);
         free(node->item);
