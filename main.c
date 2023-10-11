@@ -201,7 +201,6 @@ int main(int argc, char **argv)
         wordCount++;
     }
     // Printing wordCount for debugging purposes. You can remove this part from your submission.
-    printf("%d\n", wordCount);
 
     /////////////////PAY ATTENTION HERE/////////////////
     // This might be a good place to allocate memory for your data structure, by the size of "wordCount"
